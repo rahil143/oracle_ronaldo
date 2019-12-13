@@ -78,5 +78,12 @@ CREATE VIEW V_USER_ROLES AS SELECT * FROM USER_ROLES;
 
 --CREATING PROCEDURES FOR APPLICATION ACCESS AND OPERATIONS
 
+select * from access_user;
+select * from access_roles;
+select * from login_type;
+select * from logout_type;
+select * from user_logging;
+select * from user_roles;
+
 
 
