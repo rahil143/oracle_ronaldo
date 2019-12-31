@@ -85,5 +85,18 @@ select * from logout_type;
 select * from user_logging;
 select * from user_roles;
 
+show user;
+
+--Creating RONALDO user audit table
+
+CREATE TABLE RONALDO_AUDIT(
+    DDL_DATE DATE,
+    DDL_USER VARCHAR2(15),
+    OBJECT_CREATED VARCHAR2(15),
+    OBJECT_NAME VARCHAR2(15),
+    DDL_OPERATION VARCHAR2(15)
+);
+
+
 
 

@@ -1,48 +1,85 @@
 SET SERVEROUTPUT ON;
 
-CREATE OR REPLACE PROCEDURE WELCOME(MY_NAME IN VARCHAR2)
-IS
-BEGIN
-dbms_output.put_line('Welcome ' || MY_NAME);
-END;
-/
+create or replace procedure c_roles(
+  	p_r_name in roles.r_name%type,
+  	p_result out number
+)
+is
 
-exec WELCOME('rahil');
+p_role_id roles.role_id%type;
+p_count number:=0;
 
-CREATE OR REPLACE FUNCTION DO_LOGIN(EMAIL IN VARCHAR2,PASSWD IN VARCHAR2) RETURN INT
-IS
-    MY_COUNT INT := 0;
-BEGIN
-    SELECT COUNT(ACCESS_ID) INTO MY_COUNT FROM ACCESS_USER WHERE EMAILID = EMAIL AND U_PASSWD = PASSWD;
-    RETURN MY_COUNT;
-END;
-/
-
-
-declare
-   result number;
 begin
-   -- Call the function
-   result := DO_LOGIN('PATHANRAHIL143@GMAIL.COM','Um9uYWxkbzE0Mw==');
-   dbms_output.put_line('Result  ' || result);
-end;
-/
+  --Checking if Role Name is not null
+  if (p_r_name is null or p_r_name = '') then 
+    p_result :=1;
+    return;
+  end if;
 
-CREATE OR REPLACE PROCEDURE CREATE_USER
-    (F_NAME IN ACCESS_USER.FIRST_NAME%TYPE,
-    M_NAME IN ACCESS_USER.MIDDLE_NAME%TYPE,
-    S_NAME IN ACCESS_USER.SUR_NAME%TYPE,
-    U_EMAIL IN ACCESS_USER.EMAILID%TYPE,
-    P_NUMBER IN ACCESS_USER.PHONE_NUMBER%TYPE,
-    PASWD IN ACCESS_USER.U_PASSWD%TYPE)
-IS
-    USERID INT := SEQ_ACCESS_USER.NEXTVAL;
-    STATUS CHAR :='Y';
-BEGIN
-    INSERT INTO ACCESS_USER(ACCESS_ID,FIRST_NAME,MIDDLE_NAME,SUR_NAME,EMAILID,PHONE_NUMBER,ENABLED,U_PASSWD) 
-    VALUES(USER_ID,F_NAME,M_NAME,S_NAME,U_EMAIL,P_NUMBER,STATUS,PASWD);
-END;
-/
+  --Checking if the Role already Exist in the Database
+  select count(*) into p_count from roles where r_name = p_r_name;
+
+  if p_count > 0 then
+    p_result :=1;
+    return;
+  end if;
+
+  --Setting Role Id for new Record
+  select max(role_id) into p_role_id from roles;
+  if p_role_id is null then p_role_id := 1; else p_role_id := p_role_id + 1; end if;
+
+  --Inserting the new Record in Roles Table
+  insert into roles values(
+  	p_role_id,
+    p_r_name
+  );
+
+  commit;
+
+  p_result :=0;
+end;
+
+create or replace procedure c_user_roles(
+  p_role_id in user_roles.user_roles_id%type,
+  p_access_id in user_roles.access_id%type,
+  p_result out number
+)
+is 
+
+p_user_roles_id user_roles.user_roles_id%type;
+p_role_count number:=0;
+
+begin
+
+  --Verifying if Role Id is not null and empty
+  if (p_role_id is null or p_role_id='')  or (p_access_id is null or p_access_id='') then 
+    p_result :=1; 
+    return; 
+  end if;
+
+  --Checking if Role already axits
+  select count(*) into p_role_count from user_roles where role_id = p_role_id and access_id = p_access_id;
+  if p_role_count >0 then
+    p_result :=1; 
+    return; 
+  end if;
+
+  --Setting User Roles ID
+  select max(user_roles_id) into p_user_roles_id from user_roles;
+  if p_user_roles_id is null then p_user_roles_id := 1; else p_user_roles_id := p_user_roles_id + 1; end if;
+
+  --Inserting data in User Roles Table
+  insert into user_roles values(
+  	p_user_roles_id,
+    p_role_id,
+    p_access_id
+  );
+  commit;
+  p_result:=0;
+
+end;
+
+
 
 
 
